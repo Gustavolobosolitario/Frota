@@ -16,8 +16,8 @@ import warnings
 
 
 
-# Ativando o modo de depuração
-st.set_option('server.debug', True)
+
+
 
 
 # Suprime especificamente a mensagem de aviso do Streamlit
