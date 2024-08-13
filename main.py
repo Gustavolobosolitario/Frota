@@ -721,7 +721,7 @@ def exibir_reservas_interativas():
         if selected_rows is None:
             pass
         else:
-            selected_id = selected_rows.iloc[0,0]
+            selected_id = selected_rows.iloc[0,0][id]
         
             
             
