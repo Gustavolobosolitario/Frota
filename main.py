@@ -16,6 +16,10 @@ import warnings
 
 
 
+# Ativando o modo de depuração
+st.set_option('server.debug', True)
+
+
 # Suprime especificamente a mensagem de aviso do Streamlit
 warnings.filterwarnings("ignore", message="Please replace st.experimental_get_query_params with st.query_params.")
 
@@ -480,25 +484,29 @@ def arredondar_para_intervalo(time_obj, intervalo_mins=30):
 # Função para adicionar uma nova reserva
 def adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destinos):
     try:
+        if not veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
+            st.error("O veículo já está reservado para o período selecionado.")
+            return
+        
         destino_str = ', '.join(destinos) if destinos else ''
-        if veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
-            with sqlite3.connect('reservas.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute('''INSERT INTO reservas 
-                                  (nome_completo, email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, cidade, status) 
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                               (st.session_state.nome_completo, st.session_state.usuario_logado, 
-                                dtRetirada.strftime('%d/%m/%Y'), hrRetirada.strftime('%H:%M:%S'), 
-                                dtDevolucao.strftime('%d/%m/%Y'), hrDevolucao.strftime('%H:%M:%S'), 
-                                carro, destino_str, 'Agendado'))
-                conn.commit()
+        with sqlite3.connect('reservas.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('''INSERT INTO reservas 
+                              (nome_completo, email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, cidade, status) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                           (st.session_state.nome_completo, st.session_state.usuario_logado, 
+                            dtRetirada.strftime('%d/%m/%Y'), hrRetirada.strftime('%H:%M:%S'), 
+                            dtDevolucao.strftime('%d/%m/%Y'), hrDevolucao.strftime('%H:%M:%S'), 
+                            carro, destino_str, 'Agendado'))
+            conn.commit()
+            st.success("Reserva realizada com sucesso!")
             enviar_notificacao_reserva(st.session_state.nome_completo, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destino_str)
-            return True
-        else:
-            return False
+    
     except sqlite3.Error as e:
-        print(f"Erro ao adicionar reserva: {e}")
-        return False
+        st.error(f"Erro ao adicionar reserva: {e}")
+    except Exception as e:
+        st.error(f"Erro inesperado: {e}")
+
 
 
 
@@ -773,8 +781,8 @@ def recuperar_senha(email):
     enviar_email_recovery(email, link)
 
 def atualizar_senha_com_token(token, nova_senha):
-    senha_hash = hashlib.sha256(nova_senha.encode()).hexdigest()
     try:
+        senha_hash = hashlib.sha256(nova_senha.encode()).hexdigest()
         with sqlite3.connect('reservas.db') as conn:
             cursor = conn.cursor()
             cursor.execute('''UPDATE usuarios SET senha = ? 
@@ -788,7 +796,10 @@ def atualizar_senha_com_token(token, nova_senha):
             return True
     except sqlite3.Error as e:
         st.error(f"Erro ao atualizar a senha: {e}")
+    except Exception as e:
+        st.error(f"Ocorreu um erro inesperado: {e}")
         return False
+
 
 
 
