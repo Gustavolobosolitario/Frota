@@ -619,27 +619,15 @@ def veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
 
 
 def atualizar_status_reserva(selected_id):
-    try:
+    
         with sqlite3.connect('reservas.db') as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT email_usuario FROM reservas WHERE id = ?', (selected_id,))
-            result = cursor.fetchone()
-
-            if result:
-                email_usuario = result[0]
-                if email_usuario == st.session_state.usuario_logado:
-                    cursor.execute(f'UPDATE reservas SET status = "Cancelado" WHERE id = {selected_id}')
-                    conn.commit()
-                    st.success('Reserva cancelada com sucesso!')
-                    st.session_state.atualizar_tabela = True
-                    st.rerun()
-                else:
-                    st.error('Você não tem permissão para cancelar essa reserva.')
-            else:
-                st.error('Reserva não encontrada.')
-    except sqlite3.Error as e:
-        st.error(f"Erro ao cancelar a reserva: {e}")
-        st.rerun()
+            cursor.execute(f'UPDATE reservas SET status = "Cancelado"  WHERE id = {selected_id}')
+            st.text(type(selected_id))
+            conn.commit()
+            st.success('Reserva cancelada com sucesso!')
+            st.session_state.atualizar_tabela = True
+            st.rerun()
    
 
 
