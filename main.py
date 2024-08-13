@@ -668,7 +668,6 @@ def adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, d
     
 
 # Função para exibir reservas na interface
-# Função para exibir reservas na interface
 def exibir_reservas_interativas():
     df_reservas = carregar_reservas_do_banco()
     
@@ -705,27 +704,29 @@ def exibir_reservas_interativas():
         grid_response = AgGrid(df_reservas, gridOptions=grid_options, update_mode=GridUpdateMode.SELECTION_CHANGED, key='reservas_grid')
         selected_rows = grid_response.get('selected_rows', [])
 
+        # Validar se o usuário selecionou um registro
         if selected_rows:
             selected_id = selected_rows[0]['id']
-            selected_email = selected_rows[0]['email_usuario']  # Assumindo que a coluna 'email_usuario' contém o e-mail do usuário que fez a reserva
+            selected_email_usuario = selected_rows[0]['Nome Completo']
             
-            # Verifica se o usuário logado é o mesmo que criou a reserva
-            if selected_email == st.session_state.usuario_logado:
+            # Verifica se a reserva pertence ao usuário logado
+            if selected_email_usuario == st.session_state.usuario_logado:
                 btnCancelar = st.button('Cancelar', key='bntCancelar')
                 
                 if btnCancelar:
                     if atualizar_status_reserva(selected_id):
-                        st.success('Reserva cancelada com sucesso.')
+                        st.success('Status da reserva alterado com sucesso')
                         
                         # Recarregar os dados atualizados
                         df_reservas = carregar_reservas_do_banco()
                         st.session_state.df_selecao = df_reservas
                     else:
-                        st.error('Erro ao cancelar a reserva.')
+                        st.error('Erro ao alterar o status da reserva.')
             else:
-                st.warning('Você só pode cancelar suas próprias reservas.')
+                st.warning("Você não pode cancelar reservas de outros usuários.")
     else:
-        st.warning('Nenhuma reserva selecionada.')
+        st.warning('Nenhuma reserva selecionada')
+
 
 
 def verificar_tabelas():
