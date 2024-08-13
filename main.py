@@ -541,7 +541,8 @@ def filtrar_reservas(df, dtRetirada=None, dtDevolucao=None, carros=None, cidades
         df = df[df['dtRetirada'] == pd.Timestamp(dtRetirada).strftime('%d/%m/%Y')]
     
     if dtDevolucao:
-        df = df[df['dtDevolucao'] == pd.Timestamp(dtDevolucao).strftime('%d/%m/%Y'), format]
+        df = df[df['dtDevolucao'] == pd.Timestamp(dtDevolucao).strftime('%d/%m/%Y')]
+        
     
     if carros:
         df = df[df['carro'].str.contains('|'.join(carros), case=False, na=False)]
@@ -721,7 +722,7 @@ def exibir_reservas_interativas():
         if selected_rows is None:
             pass
         else:
-            selected_id = selected_rows.iloc[0,0][id]
+            selected_id = selected_rows.iloc[0,0]
         
             
             
@@ -898,15 +899,15 @@ def home_page():
             col1, col2 = st.columns(2)
 
             with col1:
-                dtRetirada = st.date_input(label='Data de Retirada', key='dtRetirada_filtro', value=None)
+                dtRetirada = st.date_input(label='Data de Retirada', key='dtRetirada_filtro', value=None, format='DD/MM/YYYY')
 
             with col2:
-                dtDevolucao = st.date_input(label='Data de Devolução', key='dtDevolucao_filtro', value=None)
+                dtDevolucao = st.date_input(label='Data de Devolução', key='dtDevolucao_filtro', value=None, format='DD/MM/YYYY')
 
             col3, col4 = st.columns(2)
 
             with col3:
-                carro = st.multiselect(label='Carro', key='carro_filtro', options=['SWQ1F92 - Nissan Versa Novo', 'SVO6A16 - Saveiro', 'GEZ5262 - Nissan Versa'])
+                carro = st.multiselect(label='Carro', key='carro_filtro', options=['SWQ1F92 - Versa Advance', 'SVO6A16 - Saveiro', 'GEZ5262 - Nissan SV'])
 
             with col4:
                 cidade = st.multiselect(label='Cidade', key='cidade_filtro', options=['Rio Claro', 'Lençóis Paulista', 'São Carlos', 'Araras', 'Ribeirão Preto',
