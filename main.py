@@ -618,17 +618,7 @@ def veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
     return True
 
 
-'''def atualizar_status_reserva(selected_id):
-    
-        with sqlite3.connect('reservas.db') as conn:
-            cursor = conn.cursor()
-            cursor.execute(f'UPDATE reservas SET status = "Cancelado"  WHERE id = {selected_id}')
-            st.text(type(selected_id))
-            conn.commit()
-            st.success('Reserva cancelada com sucesso!')
-            st.session_state.atualizar_tabela = True
-            st.rerun()'''
-   
+
 
 
 def atualizar_status_reserva(selected_id):
