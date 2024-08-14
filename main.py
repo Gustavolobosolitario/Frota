@@ -618,7 +618,7 @@ def veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
     return True
 
 
-def atualizar_status_reserva(selected_id):
+'''def atualizar_status_reserva(selected_id):
     
         with sqlite3.connect('reservas.db') as conn:
             cursor = conn.cursor()
@@ -627,8 +627,40 @@ def atualizar_status_reserva(selected_id):
             conn.commit()
             st.success('Reserva cancelada com sucesso!')
             st.session_state.atualizar_tabela = True
-            st.rerun()
+            st.rerun()'''
    
+
+
+def atualizar_status_reserva(selected_id):
+    
+        # Certifique-se de que o selected_id é um número inteiro
+        selected_id = int(selected_id)
+        
+        # Conectar ao banco de dados para verificar o email associado à reserva
+        with sqlite3.connect('reservas.db') as conn:
+            cursor = conn.cursor()
+            
+            # Buscar o email associado à reserva
+            cursor.execute("SELECT email_usuario FROM reservas WHERE id = ?", (selected_id,))
+            resultado = cursor.fetchone()
+
+            if resultado:
+                email_reserva = resultado[0]
+                
+                # Verificar se o usuário logado é o mesmo que fez a reserva
+                if email_reserva == st.session_state.usuario_logado:
+                    # Atualizar o status da reserva para "Cancelado"
+                    cursor.execute("UPDATE reservas SET status = 'Cancelado' WHERE id = ?", (selected_id,))
+                    conn.commit()
+                    st.success('Reserva cancelada com sucesso!')
+                    
+                    # Marcar para recarregar a tabela
+                    st.session_state.atualizar_tabela = True
+                    st.rerun()
+                else:
+                    st.error('Você não tem permissão para cancelar esta reserva.')
+            
+
 
 
 
@@ -730,6 +762,9 @@ def exibir_reservas_interativas():
                     
     else:
         st.warning('Nenhuma reserva selecionada')
+        
+        
+        
 
 def verificar_tabelas():
     with sqlite3.connect('reservas.db') as conn:
