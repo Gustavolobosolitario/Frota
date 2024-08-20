@@ -217,19 +217,6 @@ def recuperar_senha(email):
     enviar_email_recovery(email, link)
 
 
-# Função para adicionar um novo usuário
-def adicionar_usuario(nome_completo, email, senha):
-    senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-    try:
-        with sqlite3.connect('reservas.db') as conn:
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO usuarios (nome_completo, email, senha) VALUES (?, ?, ?)', 
-                           (nome_completo, email, senha_hash))
-            conn.commit()
-            return True  # Retorna True se o cadastro for bem-sucedido
-    except Exception as e:
-        print(f'Erro ao adicionar usuário: {e}')
-        return False  # Retorna False em caso de erro
 
 
 
@@ -466,20 +453,33 @@ def cadastro():
     confirmar_senha = st.text_input('Confirme a Senha', type='password', placeholder='Confirme sua senha')
     
     if st.button('Cadastrar'):
-    if senha == confirmar_senha:
-        # Verifica se o e-mail pertence ao domínio vilaurbe.com.br
-        if email.endswith('@vilaurbe.com.br'):
-            if adicionar_usuario(nome_completo, email, senha):
-                st.success('Cadastro realizado com sucesso!')
+        if senha == confirmar_senha:
+            # Verifica se o e-mail pertence ao domínio vilaurbe.com.br
+            if email.endswith('@vilaurbe.com.br'):
+                if adicionar_usuario(nome_completo, email, senha):
+                    st.success('Cadastro realizado com sucesso!')
+                else:
+                    st.error('E-mail já cadastrado.')
             else:
-                st.error('E-mail já cadastrado ou ocorreu um erro ao registrar.')
+                st.error('Somente para colaboradores "vilaurbe" são permitidos.')
         else:
-            st.error('Somente para colaboradores "vilaurbe" são permitidos.')
-    else:
-        st.error('As senhas não correspondem.')
+            st.error('As senhas não correspondem.')
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
-
+# Função para adicionar um novo usuário
+def adicionar_usuario(nome_completo, email, senha):
+    senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+    try:
+        with sqlite3.connect('reservas.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO usuarios (nome_completo, email, senha) VALUES (?, ?, ?)', 
+                           (nome_completo, email, senha_hash))
+            conn.commit()
+            return True  # Retorna True se o cadastro for bem-sucedido
+    except Exception as e:
+        print(f'Erro ao adicionar usuário: {e}')
+        return False  # Retorna False em caso de erro
 
 
 
