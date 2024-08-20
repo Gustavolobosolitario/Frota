@@ -7,13 +7,15 @@ import smtplib
 import os
 import base64
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 import random
 import string
 import warnings
 
+
+print("st_aggrid importado com sucesso!")
 
 
 # Suprime especificamente a mensagem de aviso do Streamlit
@@ -61,13 +63,14 @@ def resetar_senha():
     st.title('Redefinir Senha')
     
     # Capture os parâmetros da URL usando st.query_params
-    query_params = st.query_params
+    params = st.query_params
+
     
     # Exiba todos os parâmetros para depuração
-    st.write(f'Todos os parâmetros da URL: {query_params}')
+    st.write(f'Todos os parâmetros da URL: {st.experimental_get_query_params}')
     
     # Captura o token corretamente da lista
-    token = query_params.get('token', [None])[0]
+    token = st.query_params('token', [None])[0]
     
     # Remova espaços em branco e verifique o token
     token = token.strip() if token else None
@@ -153,13 +156,13 @@ def resetar_senha():
     st.title('Redefinir Senha')
     
     # Continue usando st.experimental_get_query_params
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params
     
     # Exiba todos os parâmetros para depuração
-    st.write(f'Todos os parâmetros da URL: {query_params}')
+    st.write(f'Todos os parâmetros da URL: {st.query_params}')
     
     # Captura o token corretamente da lista
-    token = query_params.get('token', [None])[0]
+    token = st.query_params.get('token', [None])[0]
     
     # Remova espaços em branco e verifique o token
     token = token.strip() if token else None
@@ -823,8 +826,8 @@ def atualizar_senha_com_token(token, nova_senha):
 # Página para redefinir a senha
 def resetar_senha():
     st.title('Redefinir Senha')
-    query_params = st.experimental_get_query_params()
-    token = query_params.get('token', [None])[0]
+    query_params = st.query_params
+    token = query_params = st.query_params.get('token', [None])[0]
     
     
 
@@ -868,7 +871,7 @@ def home_page():
         if st.sidebar.button('Limpar Banco de Dados'):
             limpar_banco_dados()
             st.session_state.clear()
-            st.experimental_set_query_params(pagina='home')
+            st.query_params(pagina='home')
 
         with st.container(border=True):
             st.title('Reserva')
@@ -961,9 +964,10 @@ def home_page():
 # Exibe a página inicial ou outras páginas
 # Detectar se o token está presente nos parâmetros da URL
 # Exibe a página inicial ou outras páginas
-query_params = st.experimental_get_query_params()
+params = st.query_params
 
-if 'token' in query_params:
+
+if 'token' in params:
     resetar_senha()
 else:
     if st.session_state.get('pagina') == 'home':
@@ -973,6 +977,6 @@ else:
         exibir_reservas_interativas()
         if st.button('Voltar'):
             st.session_state.pagina = 'home'
-            st.set_query_params(pagina='home')
+            st.query_params(pagina='home')
     else:
         home_page()
