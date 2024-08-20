@@ -922,7 +922,7 @@ def home_page():
                         st.error('A data de devolução não pode ser anterior à data de retirada.')
                     else:
                         adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, descVeiculo, descDestino)
-                        st.success('Reserva realizada com sucesso!')
+                        
                                      
         with st.form(key='buscar_reserva'):
             st.subheader('Consultar Reservas')
