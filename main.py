@@ -439,6 +439,7 @@ def login():
         if verificar_usuario(email, senha):
             st.success('Login bem-sucedido!')
             st.session_state.pagina = 'home'
+            
         else:
             st.error('E-mail ou senha incorretos.')
 
@@ -599,34 +600,26 @@ def visualizar_reservas():
 
 
 # Função para verificar se o veículo está disponível
-# Função para adicionar uma nova reserva
-def adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destinos):
-    try:
-        if not veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
-            st.error("O veículo já está reservado para o período selecionado.")
-            return
-        
-        destino_str = ', '.join(destinos) if destinos else ''
-        with sqlite3.connect('reservas.db') as conn:
-            cursor = conn.cursor()
-            cursor.execute('''INSERT INTO reservas 
-                              (nome_completo, email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, cidade, status) 
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                           (st.session_state.nome_completo, st.session_state.usuario_logado, 
-                            dtRetirada.strftime('%d/%m/%Y'), hrRetirada.strftime('%H:%M:%S'), 
-                            dtDevolucao.strftime('%d/%m/%Y'), hrDevolucao.strftime('%H:%M:%S'), 
-                            carro, destino_str, 'Agendado'))
-            conn.commit()  # Confirma a transação no banco de dados
-            st.success("Reserva realizada com sucesso!")  # Mensagem de sucesso exibida após a confirmação
-            
-            # Enviar a notificação apenas se a reserva for concluída com sucesso
-            enviar_notificacao_reserva(st.session_state.nome_completo, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destino_str)
-            
-    except sqlite3.Error as e:
-        st.error(f"Erro ao adicionar reserva: {e}")
-    except Exception as e:
-        st.error(f"Erro inesperado: {e}")
+def veiculo_disponivel(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro):
+    df_reservas = carregar_reservas_do_banco()
 
+    # Convertendo as datas das reservas para o formato `datetime.date`
+    df_reservas['dtRetirada'] = pd.to_datetime(df_reservas['dtRetirada'], format='%d/%m/%Y').dt.date
+    df_reservas['dtDevolucao'] = pd.to_datetime(df_reservas['dtDevolucao'], format='%d/%m/%Y').dt.date
+    df_reservas['hrRetirada'] = pd.to_datetime(df_reservas['hrRetirada'], format='%H:%M:%S').dt.time
+    df_reservas['hrDevolucao'] = pd.to_datetime(df_reservas['hrDevolucao'], format='%H:%M:%S').dt.time
+
+    dtRetirada_date = pd.to_datetime(dtRetirada).date()
+    dtDevolucao_date = pd.to_datetime(dtDevolucao).date()
+
+    for index, row in df_reservas.iterrows():
+        if row['carro'] == carro and row['status'] != 'Cancelado':
+            if dtRetirada_date <= row['dtDevolucao'] and dtDevolucao_date >= row['dtRetirada']:
+                if (hrRetirada >= row['hrRetirada'] and hrRetirada <= row['hrDevolucao']) or \
+                   (hrDevolucao >= row['hrRetirada'] and hrDevolucao <= row['hrDevolucao']) or \
+                   (hrRetirada <= row['hrRetirada'] and hrDevolucao >= row['hrDevolucao']):
+                    return False
+    return True
 
 
 
@@ -916,7 +909,7 @@ def home_page():
                         st.error('A data de devolução não pode ser anterior à data de retirada.')
                     else:
                         adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, descVeiculo, descDestino)
-                        
+                        st.success('Reserva realizada com sucesso!')
                                      
         with st.form(key='buscar_reserva'):
             st.subheader('Consultar Reservas')
