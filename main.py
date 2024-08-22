@@ -63,14 +63,14 @@ def resetar_senha():
     st.title('Redefinir Senha')
     
     # Capture os parâmetros da URL usando st.query_params
-    params = st.query_params
+    params = st.experimental_get_query_params
 
     
     # Exiba todos os parâmetros para depuração
     st.write(f'Todos os parâmetros da URL: {st.experimental_get_query_params}')
     
     # Captura o token corretamente da lista
-    token = st.query_params('token', [None])[0]
+    token = st.experimental_get_query_params('token', [None])[0]
     
     # Remova espaços em branco e verifique o token
     token = token.strip() if token else None
@@ -156,13 +156,13 @@ def resetar_senha():
     st.title('Redefinir Senha')
     
     # Continue usando st.experimental_get_query_params
-    query_params = st.query_params
+    query_params = st.experimental_get_query_params
     
     # Exiba todos os parâmetros para depuração
     st.write(f'Todos os parâmetros da URL: {st.query_params}')
     
     # Captura o token corretamente da lista
-    token = st.query_params.get('token', [None])[0]
+    token = st.experimental_get_query_params.get('token', [None])[0]
     
     # Remova espaços em branco e verifique o token
     token = token.strip() if token else None
@@ -840,8 +840,8 @@ def atualizar_senha_com_token(token, nova_senha):
 # Página para redefinir a senha
 def resetar_senha():
     st.title('Redefinir Senha')
-    query_params = st.query_params
-    token = query_params = st.query_params.get('token', [None])[0]
+    query_params = st.experimental_get_query_params
+    token = query_params = st.experimental_get_query_params().get('token', [None])[0]
     
     
 
@@ -885,7 +885,7 @@ def home_page():
         if st.sidebar.button('Limpar Banco de Dados'):
             limpar_banco_dados()
             st.session_state.clear()
-            st.query_params(pagina='home')
+            st.experimental_get_query_params(pagina='home')
 
         with st.container(border=True):
             st.title('Reserva')
@@ -922,7 +922,7 @@ def home_page():
                         st.error('A data de devolução não pode ser anterior à data de retirada.')
                     else:
                         adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, descVeiculo, descDestino)
-                        
+                        st.success('Reserva realizada com sucesso!')
                                      
         with st.form(key='buscar_reserva'):
             st.subheader('Consultar Reservas')
@@ -978,7 +978,7 @@ def home_page():
 # Exibe a página inicial ou outras páginas
 # Detectar se o token está presente nos parâmetros da URL
 # Exibe a página inicial ou outras páginas
-params = st.query_params
+params = st.experimental_get_query_params()
 
 
 if 'token' in params:
