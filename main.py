@@ -276,6 +276,99 @@ def enviar_notificacao_reserva(email_usuario, dtRetirada, hrRetirada, dtDevoluca
         print("Notificação de reserva enviada com sucesso!")
     except Exception as e:
         print(f"Erro ao enviar notificação de reserva: {e}")
+        
+        
+        
+
+    
+    
+def enviar_notificacao_cancelamento(email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destinos):
+    servidor_smtp = 'smtp.office365.com'
+    porta = 587
+    remetente = 'ti@vilaurbe.com.br'
+    senha = 'Vilaurbe2024!'
+    destinatario = 'analytics@vilaurbe.com.br'  # Destinatário da notificação
+
+    # Formatação das datas para o formato DD/MM/YYYY
+    dtRetirada_formatada = dtRetirada.strftime('%d/%m/%Y')
+    dtDevolucao_formatada = dtDevolucao.strftime('%d/%m/%Y')
+
+    assunto = 'Cancelamento de Reserva'
+    corpo = f"""
+    Prezado(a) {email_usuario},
+
+    Informamos que a sua reserva foi cancelada com sucesso. Seguem os detalhes da reserva cancelada:
+
+    - Data de Retirada: {dtRetirada_formatada}
+    - Hora de Retirada: {hrRetirada.strftime('%H:%M')}
+    - Data de Devolução: {dtDevolucao_formatada}
+    - Hora de Devolução: {hrDevolucao.strftime('%H:%M')}
+    - Veículo: {carro}
+    - Destinos: {destinos}
+
+    Atenciosamente,
+
+    Equipe Frota Vilaurbe
+    """
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = assunto
+
+        msg.attach(MIMEText(corpo, 'plain'))
+
+        with smtplib.SMTP(servidor_smtp, porta) as server:
+            server.starttls()
+            server.login(remetente, senha)
+            server.sendmail(remetente, destinatario, msg.as_string())
+
+        print("Notificação de cancelamento enviada com sucesso!")
+    except Exception as e:
+        print(f"Erro ao enviar notificação de cancelamento: {str(e)}")
+
+
+    # Formatação das datas para o formato DD/MM/YYYY
+    dtRetirada_formatada = dtRetirada.strftime('%d/%m/%Y')
+    dtDevolucao_formatada = dtDevolucao.strftime('%d/%m/%Y')
+
+    assunto = 'Cancelamento de Reserva'
+    corpo = f"""
+    Prezado(a) {email_usuario},
+
+    Informamos que a sua reserva foi cancelada com sucesso. Seguem os detalhes da reserva cancelada:
+
+    - Data de Retirada: {dtRetirada_formatada}
+    - Hora de Retirada: {hrRetirada.strftime('%H:%M')}
+    - Data de Devolução: {dtDevolucao_formatada}
+    - Hora de Devolução: {hrDevolucao.strftime('%H:%M')}
+    - Veículo: {carro}
+    - Destinos: {destinos}
+
+    Atenciosamente,
+
+    Equipe Frota Vilaurbe
+    """
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = assunto
+
+        msg.attach(MIMEText(corpo, 'plain'))
+
+        with smtplib.SMTP(servidor_smtp, porta) as server:
+            server.starttls()
+            server.login(remetente, senha)
+            server.sendmail(remetente, destinatario, msg.as_string())
+
+        print("Notificação de cancelamento enviada com sucesso!")
+    except Exception as e:
+        print(f"Erro ao enviar notificação de cancelamento: {str(e)}")
+
+
 
 
 
@@ -679,6 +772,30 @@ def atualizar_status_reserva(selected_id):
                     st.rerun()
                 else:
                     st.error('Você não tem permissão para cancelar esta reserva.')
+                    
+                    
+                    
+                    
+# Função para cancelar a reserva e enviar notificação
+def cancelar_reserva(selected_id):
+    with sqlite3.connect('reservas.db') as conn:
+        cursor = conn.cursor()
+        
+        # Buscar os detalhes da reserva
+        cursor.execute('SELECT email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, cidade FROM reservas WHERE id = ?', (selected_id,))
+        reserva = cursor.fetchone()
+
+        if reserva:
+            email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destinos = reserva
+
+            # Atualizar o status para "Cancelado"
+            cursor.execute('UPDATE reservas SET status = "Cancelado" WHERE id = ?', (selected_id,))
+            conn.commit()
+
+            # Enviar notificação de cancelamento
+            enviar_notificacao_cancelamento(email_usuario, dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, destinos)
+            return True
+        return False
             
 
 
@@ -715,6 +832,27 @@ def adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, d
 
 
 
+# Função para exportar reservas para CSV
+def exportar_reservas_para_csv(df_reservas):
+    csv = df_reservas.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()  # Codifica o CSV para base64
+    href = f'<a href="data:file/csv;base64,{b64}" download="reservas.csv">Baixar CSV de todas as reservas</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+
+
+
+
+def buscar_reservas():
+    try:
+        with sqlite3.connect('reservas.db') as conn:
+            query = "SELECT * FROM reservas"
+            df_reservas = pd.read_sql_query(query, conn)
+        return df_reservas
+    except Exception as e:
+        st.error(f"Erro ao buscar reservas: {e}")
+        return pd.DataFrame()  # Retorna DataFrame vazio se houver erro
+
 
 
 
@@ -723,6 +861,8 @@ def adicionar_reserva(dtRetirada, hrRetirada, dtDevolucao, hrDevolucao, carro, d
 # Função para exibir reservas na interface
 def exibir_reservas_interativas():
     df_reservas = carregar_reservas_do_banco()
+     # Buscar as reservas no banco de dados
+    df_reservas = buscar_reservas()
     
     if not df_reservas.empty:
         df_reservas = df_reservas.rename(columns={
@@ -756,6 +896,10 @@ def exibir_reservas_interativas():
 
         grid_response = AgGrid(df_reservas, gridOptions=grid_options, update_mode=GridUpdateMode.SELECTION_CHANGED, key='reservas_grid')
         selected_rows = grid_response.get('selected_rows', [])
+        
+        # Botão para exportar todas as reservas
+        st.write('### Exportar todas as reservas:')
+        exportar_reservas_para_csv(df_reservas)
 
         
         # Validar se o usuário selecionou um registro:
@@ -772,7 +916,7 @@ def exibir_reservas_interativas():
             # Exibir o botão de Cancelar
             if btnCancelar:
                 if atualizar_status_reserva(selected_id):
-                    st.success('Status da reserva alterado com sucesso')
+                    st.success('Reserva cancelada com sucesso e notificação enviada!')
                     
                     # Recarregar os dados atualizados
                     df_reservas = carregar_reservas_do_banco()
@@ -1187,4 +1331,41 @@ else:
             st.query_params(pagina='home')
     else:
         home_page()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
