@@ -805,17 +805,18 @@ def verificar_tabelas():
     
 
 
-# Função para limpar o banco de dados
 def limpar_banco_dados():
     try:
         with sqlite3.connect('reservas.db') as conn:
             cursor = conn.cursor()
             cursor.execute("DROP TABLE IF EXISTS reservas;")
             cursor.execute("DROP TABLE IF EXISTS usuarios;")
+            cursor.execute("DROP TABLE IF EXISTS tokens;")  # Adicionado para apagar a tabela de tokens
             conn.commit()
             criar_tabelas()
     except sqlite3.OperationalError as e:
         st.error(f"Erro ao acessar o banco de dados: {e}")
+
         
         
         
