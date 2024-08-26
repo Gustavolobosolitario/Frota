@@ -906,11 +906,8 @@ def exibir_reservas_interativas():
         if selected_rows is None:
             pass
         else:
-            selected_id = selected_rows.iloc[0, 0]
-  # Corrige o acesso ao id
-
+            selected_id = selected_rows.iloc[0,0]
         
-            
             
             
             btnCancelar = st.button('Cancelar', key='bntCancelar')
@@ -919,8 +916,6 @@ def exibir_reservas_interativas():
             # Exibir o botão de Cancelar
             if btnCancelar:
                 if atualizar_status_reserva(selected_id):
-
-
                     st.success('Reserva cancelada com sucesso e notificação enviada!')
                     
                     # Recarregar os dados atualizados
